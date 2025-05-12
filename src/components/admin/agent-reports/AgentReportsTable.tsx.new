@@ -1,0 +1,342 @@
+import { useState, useEffect } from 'react';
+import { 
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow 
+} from "@/components/ui/table";
+import { 
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Download, Search } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
+
+// 代理数据报告接口
+interface AgentReport {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  status: 'active' | 'inactive';
+  referral_count: number;
+  referral_amount: number;  // 下级充值总金额
+  withdrawal_amount: number; // 下级提现总金额
+  commission_earned: number; // 佣金
+  commission_withdrawn: number; // 已提现佣金
+  last_active: string;
+  created_at: string;
+}
+
+interface Agent {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  status: 'active' | 'inactive';
+  created_at: string;
+  updated_at: string;
+}
+
+interface AgentReferral {
+  id: string;
+  agent_id: string;
+  referred_user_id: string;
+  status: string;
+}
+
+interface RechargeOrder {
+  id: string;
+  user_id: string;
+  amount: number;
+  status: string;
+}
+
+interface WalletTransaction {
+  id: string;
+  user_id: string;
+  amount: number;
+  type: string;
+  status: string;
+}
+
+interface AgentTransaction {
+  id: string;
+  agent_id: string;
+  amount: number;
+  type: string;
+  status: string;
+}
+
+export default function AgentReportsTable() {
+  const [reports, setReports] = useState<AgentReport[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const { toast } = useToast();
+
+  // 加载代理报表数据
+  useEffect(() => {
+    fetchAgentReports();
+  }, []);
+
+  // 获取代理报表数据
+  const fetchAgentReports = async () => {
+    setIsLoading(true);
+    try {
+      // 获取代理列表
+      const { data: agents, error } = await supabase
+        .from('agents')
+        .select('*');
+
+      if (error) {
+        console.error('获取代理列表失败:', error);
+        toast({
+          title: "获取数据失败",
+          description: "无法获取代理列表，请稍后再试",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      if (!agents || agents.length === 0) {
+        setReports([]);
+        setIsLoading(false);
+        return;
+      }
+
+      // 处理每个代理的详细数据
+      const reportsData = await Promise.all(agents.map(async (agent: Agent) => {
+        // 获取下级用户数量
+        const { data: referrals, error: referralsError } = await supabase
+          .from('agent_referrals')
+          .select('*')
+          .eq('agent_id', agent.id);
+
+        if (referralsError) {
+          console.error('获取代理引荐用户失败:', referralsError);
+          return null;
+        }
+
+        // 获取下级用户IDs
+        const userIds = referrals?.map(ref => ref.referred_user_id) || [];
+        
+        // 计算充值金额和提现金额
+        let rechargeAmount = 0;
+        let withdrawalAmount = 0;
+
+        if (userIds.length > 0) {
+          // 获取充值数据
+          const { data: recharges, error: rechargesError } = await supabase
+            .from('recharge_orders')
+            .select('amount')
+            .in('user_id', userIds)
+            .eq('status', 'completed');
+
+          if (rechargesError) {
+            console.error('获取充值数据失败:', rechargesError);
+          } else if (recharges && recharges.length > 0) {
+            // 计算充值总额
+            rechargeAmount = recharges.reduce((sum, order) => sum + (Number(order.amount) || 0), 0);
+          }
+
+          // 获取提现数据
+          const { data: withdrawals, error: withdrawalsError } = await supabase
+            .from('wallet_transactions')
+            .select('amount')
+            .in('user_id', userIds)
+            .eq('type', 'withdrawal')
+            .eq('status', 'completed');
+
+          if (withdrawalsError) {
+            console.error('获取提现数据失败:', withdrawalsError);
+          } else if (withdrawals && withdrawals.length > 0) {
+            // 计算提现总额
+            withdrawalAmount = withdrawals.reduce((sum, transaction) => sum + (Number(transaction.amount) || 0), 0);
+          }
+        }
+
+        // 获取佣金数据
+        const { data: commissions, error: commissionsError } = await supabase
+          .from('agent_transactions')
+          .select('amount, type, status')
+          .eq('agent_id', agent.id);
+
+        if (commissionsError) {
+          console.error('获取佣金数据失败:', commissionsError);
+          return null;
+        }
+
+        // 计算佣金总额和已提现佣金
+        let commissionEarned = 0;
+        let commissionWithdrawn = 0;
+
+        if (commissions && commissions.length > 0) {
+          commissions.forEach(comm => {
+            if (comm.type === 'commission' && comm.status === 'completed') {
+              commissionEarned += Number(comm.amount) || 0;
+            }
+            if (comm.type === 'withdrawal' && comm.status === 'completed') {
+              commissionWithdrawn += Number(comm.amount) || 0;
+            }
+          });
+        }
+
+        return {
+          id: agent.id,
+          name: agent.name,
+          email: agent.email,
+          phone: agent.phone,
+          status: agent.status,
+          referral_count: userIds.length,
+          referral_amount: rechargeAmount,
+          withdrawal_amount: withdrawalAmount,
+          commission_earned: commissionEarned,
+          commission_withdrawn: commissionWithdrawn,
+          last_active: agent.updated_at,
+          created_at: agent.created_at
+        } as AgentReport;
+      }));
+
+      // 过滤掉null值并设置报表数据
+      const validReports = reportsData.filter((report): report is AgentReport => report !== null);
+      setReports(validReports);
+    } catch (error) {
+      console.error('获取代理报表失败:', error);
+      toast({
+        title: "获取数据失败",
+        description: "无法处理代理报表数据，请稍后再试",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 过滤代理数据
+  const filteredReports = reports.filter((report) => {
+    return (
+      report.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      report.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      report.phone.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
+
+  // 导出Excel报表
+  const exportToExcel = () => {
+    // 导出功能，后续可以实现具体的Excel导出
+    alert('导出功能将在后续实现');
+    toast({
+      title: "功能提示",
+      description: "导出功能将在后续版本中实现"
+    });
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* 搜索和导出 */}
+      <div className="flex justify-between items-center">
+        <div className="relative w-64">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="搜索代理..."
+            className="pl-8"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <Button onClick={exportToExcel} disabled={isLoading || reports.length === 0}>
+          <Download className="mr-2 h-4 w-4" />
+          导出报表
+        </Button>
+      </div>
+
+      {/* 代理数据表格 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>代理数据报表</CardTitle>
+          <CardDescription>
+            显示每个代理的下级用户数据和财务统计
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
+              <span className="ml-2">加载中...</span>
+            </div>
+          ) : (
+            <Table>
+              <TableCaption>截至 {new Date().toLocaleDateString()} 的代理数据</TableCaption>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>代理名称</TableHead>
+                  <TableHead>联系方式</TableHead>
+                  <TableHead>状态</TableHead>
+                  <TableHead className="text-right">下级用户数</TableHead>
+                  <TableHead className="text-right">下级充值金额</TableHead>
+                  <TableHead className="text-right">下级提现金额</TableHead>
+                  <TableHead className="text-right">佣金及提现</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredReports.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
+                      {searchTerm ? '没有找到匹配的代理' : '暂无代理数据'}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredReports.map((report) => (
+                    <TableRow key={report.id}>
+                      <TableCell>
+                        <div className="font-medium">{report.name}</div>
+                        <div className="text-xs text-muted-foreground">
+                          注册: {new Date(report.created_at).toLocaleDateString()}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div>{report.email}</div>
+                        <div className="text-xs text-muted-foreground">{report.phone}</div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={report.status === 'active' ? 'default' : 'secondary'}>
+                          {report.status === 'active' ? '活跃' : '未活跃'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="font-medium">{report.referral_count}</div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="font-medium text-green-600">¥{report.referral_amount.toFixed(2)}</div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="font-medium text-orange-600">¥{report.withdrawal_amount.toFixed(2)}</div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="font-medium">¥{report.commission_earned.toFixed(2)}</div>
+                        <div className="text-xs text-muted-foreground">
+                          已提: ¥{report.commission_withdrawn.toFixed(2)}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

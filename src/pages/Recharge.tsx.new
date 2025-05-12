@@ -1,0 +1,621 @@
+import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import Layout from "@/components/Layout";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { getPhoneCarrier } from "@/services/carrierDetection";
+import { CarrierType, RechargeOption, BusinessType } from "@/types";
+import { useToast } from "@/hooks/use-toast";
+import { rechargePhone } from "@/services/rechargeOptions";
+import { ArrowLeft, ArrowRight, ChevronLeft, Smartphone, Gamepad, PlayCircle, QrCode, CreditCard } from "lucide-react";
+import { LoadingSpinner, LoadingButton, InlineLoading } from "@/components/ui";
+import { useAuth } from "@/components/AuthProvider";
+import { getUserWalletByUserId } from "@/services/walletService";
+import { getBusinessTypes, getProductsForBusinessType } from "@/services/businessService";
+import { Card, CardContent } from "@/components/ui/card";
+
+// 导入新的样式文件
+import "@/styles/recharge.css";
+
+const Recharge: React.FC = () => {
+  const [phoneNumber, setPhoneNumber] = useState<string>("");
+  const [customerName, setCustomerName] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [detecting, setDetecting] = useState<boolean>(false);
+  const [carrier, setCarrier] = useState<CarrierType | null>(null);
+  const [amount, setAmount] = useState<number>(0);
+  const [customAmount, setCustomAmount] = useState<string>("");
+  const [isCustomAmount, setIsCustomAmount] = useState<boolean>(false);
+  const [isBatchMode, setIsBatchMode] = useState<boolean>(false);
+  const [parsedPhoneCount, setParsedPhoneCount] = useState<number>(0);
+  const [options, setOptions] = useState<RechargeOption[]>([]);
+  const [balance, setBalance] = useState<number | null>(null);
+  const [isLoadingWallet, setIsLoadingWallet] = useState<boolean>(true);
+  const [discount] = useState<number>(0.2); // 折扣率 (20%)
+  const [exchangeRate] = useState<number>(7.2); // 人民币兑USDT汇率
+  const [businessTypes, setBusinessTypes] = useState<BusinessType[]>([]);
+  const [selectedBusinessType, setSelectedBusinessType] = useState<string>("");
+  const [isLoadingBusinessTypes, setIsLoadingBusinessTypes] = useState<boolean>(true);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { user } = useAuth();
+  
+  // Fetch user wallet balance - 优化钱包加载性能
+  useEffect(() => {
+    let isMounted = true; // 组件挂载状态跟踪
+    let timeoutId: NodeJS.Timeout | null = null;
+    
+    const fetchWalletBalance = async () => {
+      if (!user) {
+        setIsLoadingWallet(false);
+        return;
+      }
+      
+      // 高优先级显示一个占位值，避免空白闪烁
+      setBalance(prev => prev ?? 0);
+      
+      try {
+        setIsLoadingWallet(true);
+        // 采用Promise.race设置超时，最多等待3秒
+        const timeoutPromise = new Promise<null>((resolve) => {
+          timeoutId = setTimeout(() => resolve(null), 3000);
+        });
+        
+        const walletPromise = getUserWalletByUserId(user.id);
+        const result = await Promise.race([walletPromise, timeoutPromise]);
+        
+        if (!isMounted) return;
+        
+        if (result !== null) {
+          // 清除超时定时器
+          if (timeoutId) clearTimeout(timeoutId);
+          
+          // 使用wallet数据
+          setBalance(result.balance || 0);
+        } else {
+          // 超时处理逻辑，但仍然将会后台继续API调用
+          console.log('Wallet data fetch timeout, showing cached or default value');
+        }
+      } catch (error) {
+        if (!isMounted) return;
+        
+        console.error("Error fetching wallet:", error);
+        // 只在空余额时显示错误，避免繁琐通知
+        if (balance === null) {
+          toast({
+            title: "获取钱包余额失败",
+            description: "正在使用缓存数据，请刷新页面获取最新余额",
+          });
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingWallet(false);
+        }
+      }
+    };
+    
+    fetchWalletBalance();
+    
+    return () => {
+      isMounted = false;
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [user, toast, balance]);
+
+  // Load business types on component mount
+  useEffect(() => {
+    loadBusinessTypes();
+  }, []);
+
+  // Auto-load products when business type changes
+  useEffect(() => {
+    if (selectedBusinessType) {
+      loadProductsForBusinessType(selectedBusinessType);
+    }
+  }, [selectedBusinessType]);
+
+  const loadBusinessTypes = async () => {
+    try {
+      setIsLoadingBusinessTypes(true);
+      const types = await getBusinessTypes();
+      setBusinessTypes(types);
+      
+      // Automatically select the first business type
+      if (types.length > 0 && !selectedBusinessType) {
+        setSelectedBusinessType(types[0].id);
+      }
+      
+    } catch (error) {
+      console.error("Error loading business types:", error);
+      toast({
+        title: "加载业务类型失败",
+        description: "请刷新页面重试",
+      });
+    } finally {
+      setIsLoadingBusinessTypes(false);
+    }
+  };
+
+  const loadProductsForBusinessType = async (typeId: string) => {
+    if (!typeId) return;
+    
+    try {
+      const products = await getProductsForBusinessType(typeId);
+      
+      // 设置固定金额选项
+      const defaultAmounts = [
+        { value: 50, discount: 0 },
+        { value: 100, discount: 5 },
+        { value: 200, discount: 12 },
+        { value: 300, discount: 20 },
+        { value: 500, discount: 35 },
+        { value: 1000, discount: 80 },
+      ];
+
+      // 未来优化：使用产品数据中的价格
+      // const productOptions = products.map(product => ({
+      //   value: product.amount,
+      //   discount: product.discount || 0
+      // }));
+
+      setOptions(defaultAmounts);
+      
+      // Reset any previously selected amount
+      setAmount(0);
+      setCustomAmount("");
+      setIsCustomAmount(false);
+      
+    } catch (error) {
+      console.error("Error loading products:", error);
+      toast({
+        title: "加载产品失败",
+        description: "请选择其他业务类型或刷新页面",
+      });
+    }
+  };
+
+  // Handle phone number change and autodetect carrier
+  const handlePhoneChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    setPhoneNumber(value);
+    
+    if (isBatchMode) {
+      // For batch mode, count valid phone numbers
+      const phones = value
+        .split(/\n|\s|,|;/)
+        .map(p => p.trim())
+        .filter(p => /^1\d{10}$/.test(p));
+      
+      setParsedPhoneCount(phones.length);
+      if (phones.length > 0) {
+        setCarrier("批量充值");
+      } else {
+        setCarrier(null);
+      }
+    } else {
+      // For single phone mode, auto-detect carrier
+      if (/^1\d{10}$/.test(value)) {
+        setDetecting(true);
+        try {
+          const carrierInfo = await getPhoneCarrier(value);
+          setCarrier(carrierInfo);
+        } catch (error) {
+          console.error("Error detecting carrier:", error);
+          setCarrier(null);
+        } finally {
+          setDetecting(false);
+        }
+      } else {
+        setCarrier(null);
+      }
+    }
+  }, [isBatchMode]);
+
+  // Handle amount selection
+  const handleAmountSelect = (value: number) => {
+    setAmount(value);
+    setIsCustomAmount(false);
+    setCustomAmount("");
+  };
+
+  // Handle custom amount change
+  const handleCustomAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "");
+    setCustomAmount(value);
+    
+    if (value) {
+      const numValue = parseInt(value, 10);
+      setAmount(numValue);
+      setIsCustomAmount(true);
+    } else {
+      setAmount(0);
+      setIsCustomAmount(false);
+    }
+  };
+
+  // Handle business type change
+  const handleBusinessTypeChange = (typeId: string) => {
+    setSelectedBusinessType(typeId);
+  };
+
+  // Handle recharge submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!carrier) {
+      toast({
+        title: "请输入有效的手机号码",
+        description: "无法识别运营商",
+      });
+      return;
+    }
+    
+    if (amount <= 0) {
+      toast({
+        title: "请选择充值金额",
+        description: "金额必须大于0",
+      });
+      return;
+    }
+    
+    // For batch mode, validate we have phone numbers
+    if (isBatchMode && parsedPhoneCount === 0) {
+      toast({
+        title: "没有有效的手机号码",
+        description: "请输入至少一个有效的手机号码",
+      });
+      return;
+    }
+    
+    // Check wallet balance if user is logged in
+    if (user) {
+      const totalAmount = isBatchMode && parsedPhoneCount > 1 ? amount * parsedPhoneCount : amount;
+      const usdtNeeded = +(totalAmount / exchangeRate).toFixed(2);
+      
+      if ((balance || 0) < usdtNeeded) {
+        toast({
+          title: "余额不足",
+          description: `需要 ${usdtNeeded} USDT，当前余额 ${balance?.toFixed(2) || 0} USDT`,
+        });
+        return;
+      }
+    }
+    
+    // Process phone numbers for batch mode
+    const phones = isBatchMode
+      ? phoneNumber
+          .split(/\n|\s|,|;/)
+          .map(p => p.trim())
+          .filter(p => /^1\d{10}$/.test(p))
+      : [phoneNumber];
+    
+    if (phones.length === 0) {
+      toast({
+        title: "没有有效的手机号码",
+        description: "请检查输入的手机号码格式",
+      });
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      
+      // Create recharge request objects
+      const requests = phones.map(phone => ({
+        phoneNumber: phone,
+        amount,
+        customerName: customerName.trim() || null,
+        businessTypeId: selectedBusinessType,
+      }));
+      
+      // Process recharge requests (serially to avoid rate limiting)
+      for (const request of requests) {
+        await rechargePhone(request);
+      }
+      
+      // Show success message
+      toast({
+        title: `充值请求已提交`,
+        description: phones.length > 1 
+          ? `已成功提交 ${phones.length} 个手机号的充值请求` 
+          : `手机号 ${phones[0]} 的充值请求已提交`,
+      });
+      
+      // Reset form
+      setPhoneNumber("");
+      setCustomerName("");
+      setAmount(0);
+      setCustomAmount("");
+      setIsCustomAmount(false);
+      setParsedPhoneCount(0);
+      setCarrier(null);
+      
+      // Redirect to orders page after successful recharge
+      navigate("/orders");
+      
+    } catch (error) {
+      console.error("Recharge error:", error);
+      toast({
+        title: "充值失败",
+        description: error instanceof Error ? error.message : "未知错误，请稍后重试",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Layout>
+      <div className="recharge-container">
+        {/* 顶部区域 */}
+        <div className="recharge-header">
+          <button 
+            className="recharge-back-button" 
+            onClick={() => navigate(-1)}
+          >
+            <ChevronLeft size={24} />
+          </button>
+          <h1>充值中心</h1>
+        </div>
+        
+        <div className="recharge-content">
+          {/* 充值横幅配图 */}
+          <div className="recharge-banner">
+            <div className="recharge-banner-text">在线充值</div>
+            <img 
+              src="https://img.freepik.com/free-vector/online-payment-concept-illustration_114360-1403.jpg?w=740&t=st=1714496761~exp=1714497361~hmac=78d6c3d558d66c4b81d71d99a44e0c9b76aeaf6ddcad4da1c28b914d8d2be00b" 
+              alt="充值插图" 
+              className="recharge-banner-image" 
+            />
+          </div>
+          
+          {/* 功能按钮区 */}
+          <div className="recharge-function-buttons">
+            <div className="function-button">
+              <div className="function-button-icon">
+                <Smartphone size={24} />
+              </div>
+              <div className="function-button-text">生活缴费</div>
+            </div>
+            <div className="function-button">
+              <div className="function-button-icon">
+                <Gamepad size={24} />
+              </div>
+              <div className="function-button-text">游戏充值</div>
+            </div>
+            <div className="function-button">
+              <div className="function-button-icon">
+                <PlayCircle size={24} />
+              </div>
+              <div className="function-button-text">花坡代充</div>
+            </div>
+            <div className="function-button">
+              <div className="function-button-icon">
+                <QrCode size={24} />
+              </div>
+              <div className="function-button-text">设置码</div>
+            </div>
+            <div className="function-button">
+              <div className="function-button-icon">
+                <CreditCard size={24} />
+              </div>
+              <div className="function-button-text">信用卡代充</div>
+            </div>
+          </div>
+        
+          {isLoadingBusinessTypes ? (
+            <div className="loading-component-centered">
+              <LoadingSpinner size="medium" text="加载业务类型..." />
+            </div>
+          ) : businessTypes.length === 0 ? (
+            <div className="text-center py-20">
+              <p className="text-lg text-muted-foreground">暂无可用的充值业务</p>
+            </div>
+          ) : (
+            <div className="recharge-tabs">
+              <div className="recharge-tab-header">
+                {businessTypes.map(type => (
+                  <div 
+                    key={type.id} 
+                    className={`recharge-tab ${selectedBusinessType === type.id ? 'active' : ''}`}
+                    onClick={() => handleBusinessTypeChange(type.id)}
+                  >
+                    {type.name}
+                  </div>
+                ))}
+              </div>
+            
+              {/* 在每个业务类型下显示对应的表单 */}
+              {businessTypes.map(type => (
+                <div key={type.id} className={`recharge-tab-content ${selectedBusinessType === type.id ? 'active' : 'hidden'}`}>
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                      <Label htmlFor="customerName" className="block text-sm font-medium mb-1">
+                        充值人姓名
+                      </Label>
+                      <Input
+                        id="customerName"
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        placeholder="输入充值人姓名（选填）"
+                        className="custom-input"
+                      />
+                      
+                      <div className="mb-6">
+                        <div className="flex items-center justify-between mb-2">
+                          <Label htmlFor="phoneNumber" className="text-base">
+                            手机号码
+                          </Label>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsBatchMode(!isBatchMode)}
+                          >
+                            {isBatchMode ? "单个充值" : "批量充值"}
+                          </Button>
+                        </div>
+                        
+                        {isBatchMode ? (
+                          <>
+                            <Textarea
+                              id="phoneNumber"
+                              value={phoneNumber}
+                              onChange={handlePhoneChange}
+                              placeholder="请输入手机号码，每行一个"
+                              className="min-h-[120px]"
+                            />
+                            <p className="text-sm text-muted-foreground mt-2">
+                              已成功识别 <span className="font-medium">{parsedPhoneCount}</span> 个手机号
+                            </p>
+                          </>
+                        ) : (
+                          <div className="relative">
+                            <Input
+                              id="phoneNumber"
+                              value={phoneNumber}
+                              onChange={handlePhoneChange}
+                              placeholder="请输入手机号码"
+                              maxLength={11}
+                              className="pr-24 custom-input"
+                            />
+                            {detecting ? (
+                              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                <InlineLoading className="text-muted-foreground" />
+                              </div>
+                            ) : carrier ? (
+                              <div className="absolute right-3 top-1/2 -translate-y-1/2 bg-primary/10 px-2 py-1 rounded text-xs font-medium">
+                                {carrier}
+                              </div>
+                            ) : null}
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <Label className="text-base block">充值金额</Label>
+                        
+                        {/* 快捷金额选择 */}
+                        <div className="recharge-amount-options">
+                          {options.map((option) => {
+                            const isSelected = amount === option.value && !isCustomAmount;
+                            return (
+                              <div 
+                                key={option.value}
+                                className={`recharge-amount-option ${isSelected ? "selected" : ""}`}
+                                onClick={() => handleAmountSelect(option.value)}
+                              >
+                                <div className="amount-value">{option.value}元</div>
+                                {option.discount && (
+                                  <div className="amount-discount">
+                                    优惠{option.discount}元
+                                  </div>
+                                )}
+                                {isSelected && (
+                                  <div className="amount-selected-mark">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                      <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                        
+                        {/* 自定义金额输入 */}
+                        <div className="mt-4">
+                          <Label htmlFor="customAmount" className="text-sm">自定义金额</Label>
+                          <div className="relative mt-1">
+                            <Input
+                              id="customAmount"
+                              value={customAmount}
+                              onChange={handleCustomAmountChange}
+                              placeholder="输入自定义充值金额"
+                              className={isCustomAmount ? "border-primary" : ""}
+                            />
+                            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                              <span className="text-muted-foreground">¥</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <Card>
+                      <CardContent className="pt-6 space-y-4">
+                        <div className="flex justify-between items-center">
+                          <span className="text-base font-medium">充值金额</span>
+                          <span className="text-lg font-bold">
+                            ¥{isBatchMode && parsedPhoneCount > 1 ? `${amount} x ${parsedPhoneCount} = ${amount * parsedPhoneCount}` : amount}
+                          </span>
+                        </div>
+                        
+                        <div className="flex justify-between items-center">
+                          <span className="text-base font-medium">USDT价格</span>
+                          <span className="text-lg">
+                            {isBatchMode && parsedPhoneCount > 1 
+                              ? `${(amount * parsedPhoneCount / exchangeRate).toFixed(2)}` 
+                              : `${(amount / exchangeRate).toFixed(2)}`
+                            } USDT
+                          </span>
+                        </div>
+                        
+                        <div className="flex justify-between items-center text-xs text-muted-foreground">
+                          <span>参考汇率: 1 USDT = {exchangeRate} CNY</span>
+                        </div>
+                        
+                        {user && (
+                          <div className="flex justify-between items-center pt-2 border-t">
+                            <span className="text-base font-medium">钱包余额</span>
+                            {isLoadingWallet ? (
+                              <InlineLoading />
+                            ) : (
+                              <span className="text-lg font-bold">
+                                {balance?.toFixed(2) || "0.00"} USDT
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                    
+                    <div className="flex justify-between space-x-4">
+                      <Button 
+                        type="button" 
+                        variant="outline"
+                        onClick={() => navigate(-1)}
+                      >
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        返回
+                      </Button>
+                      
+                      <Button 
+                        type="submit" 
+                        disabled={loading || (!carrier) || amount <= 0 || (isBatchMode && parsedPhoneCount === 0)}
+                        className="flex-1"
+                      >
+                        {loading ? (
+                          <LoadingButton>处理中...</LoadingButton>
+                        ) : (
+                          <>
+                            立即充值
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </form>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </Layout>
+  );
+};
+
+export default Recharge;
