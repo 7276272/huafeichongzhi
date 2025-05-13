@@ -1,0 +1,159 @@
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  width: 100%;
+  justify-content: center;
+}
+
+.cards .card {
+  flex: 1 0 30%;
+  min-width: 200px;
+  max-width: 300px;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+/* 根据背景色自动设置文字颜色 */
+.cards .card {
+  color: black;  /* 默认文字为黑色 */
+}
+
+/* 非白色背景卡片使用白色文字 */
+.cards .red, 
+.cards .blue, 
+.cards .green, 
+.cards .purple, 
+.cards .brown, 
+.cards .navy, 
+.cards .dark,
+.cards .orange,
+.cards .cyan,
+.cards .lime,
+.cards .pink {
+  color: white;
+}
+
+/* 选中状态下的卡片样式 */
+.cards .card.selected,
+.cards .card:focus {
+  background-color: white !important;
+  color: black !important;
+  border: 2px solid #000;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+/* 选中状态下的卡片文字颜色 */
+.cards .card.selected p,
+.cards .card:focus p {
+  color: black !important;
+}
+
+/* u57fau672cu989cu8272 */
+.cards .red {
+  background-color: #FF6B6B;
+}
+
+.cards .blue {
+  background-color: #4D96FF;
+}
+
+.cards .green {
+  background-color: #6BCB77;
+}
+
+/* u65b0u589eu989cu8272 */
+.cards .yellow {
+  background-color: #FFD700;
+}
+
+.cards .purple {
+  background-color: #9370DB;
+}
+
+.cards .brown {
+  background-color: #A0522D;
+}
+
+.cards .orange {
+  background-color: #FF9F43;
+}
+
+.cards .pink {
+  background-color: #FF90BC;
+}
+
+.cards .cyan {
+  background-color: #00CED1;
+}
+
+.cards .lime {
+  background-color: #CCFF00;
+}
+
+.cards .tip {
+  font-size: 14px;
+  margin-bottom: 10px;
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+.cards .second-text {
+  font-size: 22px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.cards .card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  height: 100px;
+  width: 250px;
+  border-radius: 10px;
+  color: white;
+  cursor: pointer;
+  transition: 400ms transform, 400ms box-shadow, 400ms background-color;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  margin-bottom: 15px;
+}
+
+.cards .card p.tip {
+  font-size: 1em;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.cards .card p.second-text {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.cards .card:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #f8f8f8;
+}
+
+.cards:hover > .card:not(:hover) {
+  filter: blur(3px);
+  transform: scale(0.95);
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .cards .card {
+    width: 100%;
+  }
+}

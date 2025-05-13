@@ -1,0 +1,207 @@
+import React, { useState } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { RefreshCw, ImageIcon } from "lucide-react";
+import { RechargeOrder } from "@/types";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose } from "@/components/ui/drawer";
+import { formatDate } from "@/components/admin/orderUtils";
+import { getStatusBadge } from "@/components/admin/OrdersTable";
+
+interface OrderDetailDialogProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  order: RechargeOrder | null;
+  onStatusUpdate: (status: "pending" | "completed" | "failed") => void;
+  onRefreshPhoneInfo: (orderId: string) => void;
+  refreshingOrderId: string | null;
+  isUpdating: boolean;
+}
+
+const OrderDetailDialog: React.FC<OrderDetailDialogProps> = ({
+  isOpen,
+  onOpenChange,
+  order,
+  onStatusUpdate,
+  onRefreshPhoneInfo,
+  refreshingOrderId,
+  isUpdating,
+}) => {
+  if (!order) return null;
+  
+  // 添加状态控制查看凭证图片的抽屉组件
+  const [isImageDrawerOpen, setIsImageDrawerOpen] = useState(false);
+
+  return (
+    <>
+      <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>订单详情</DialogTitle>
+            <DialogDescription>
+              查看和更新订单信息
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-2">
+              <span className="text-gray-500">订单号:</span>
+              <span>{order.order_id}</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <span className="text-gray-500">手机号码:</span>
+              <span>{order.phone_number}</span>
+            </div>
+            {order.balance !== undefined && (
+              <div className="grid grid-cols-2 gap-2">
+                <span className="text-gray-500">话费余额:</span>
+                <div className="flex items-center gap-2">
+                  <span>¥{order.balance}</span>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={() => onRefreshPhoneInfo(order.order_id)}
+                    disabled={refreshingOrderId === order.order_id}
+                  >
+                    <RefreshCw 
+                      className={`h-3 w-3 ${refreshingOrderId === order.order_id ? 'animate-spin' : ''}`} 
+                    />
+                  </Button>
+                </div>
+              </div>
+            )}
+            {order.name && (
+              <div className="grid grid-cols-2 gap-2">
+                <span className="text-gray-500">用户姓名:</span>
+                <span>{order.name}</span>
+              </div>
+            )}
+            {order.is_batch && (
+              <div className="grid grid-cols-2 gap-2">
+                <span className="text-gray-500">批量充值:</span>
+                <span>是 ({order.batch_count} 个号码)</span>
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-2">
+              <span className="text-gray-500">充值金额:</span>
+              <span>¥{order.amount}</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <span className="text-gray-500">运营商:</span>
+              <span>{order.carrier}</span>
+            </div>
+            {order.original_carrier && order.original_carrier !== order.carrier && (
+              <div className="grid grid-cols-2 gap-2">
+                <span className="text-gray-500">原运营商:</span>
+                <span>{order.original_carrier}</span>
+              </div>
+            )}
+            {order.province && order.city && (
+              <div className="grid grid-cols-2 gap-2">
+                <span className="text-gray-500">归属地:</span>
+                <span>{order.province} {order.city}</span>
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-2">
+              <span className="text-gray-500">状态:</span>
+              <span>{getStatusBadge(order.status)}</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <span className="text-gray-500">创建时间:</span>
+              <span>{formatDate(order.created_at)}</span>
+            </div>
+            {order.completed_at && (
+              <div className="grid grid-cols-2 gap-2">
+                <span className="text-gray-500">完成时间:</span>
+                <span>{formatDate(order.completed_at)}</span>
+              </div>
+            )}
+            
+            {/* 添加查看交易凭证的部分 */}
+            {order.proof_image && (
+              <div className="grid grid-cols-2 gap-2">
+                <span className="text-gray-500">交易凭证:</span>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="outline"
+                    className="flex items-center gap-1 text-xs"
+                    onClick={() => setIsImageDrawerOpen(true)}
+                  >
+                    <ImageIcon className="h-4 w-4" />
+                    查看凭证
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter className="flex-col sm:flex-row sm:justify-between gap-2">
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => onStatusUpdate("pending")}
+                disabled={order.status === "pending" || isUpdating}
+              >
+                标记为待处理
+              </Button>
+              <Button
+                variant="default"
+                onClick={() => onStatusUpdate("completed")}
+                disabled={order.status === "completed" || isUpdating}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                标记为完成
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => onStatusUpdate("failed")}
+                disabled={order.status === "failed" || isUpdating}
+              >
+                标记为失败
+              </Button>
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
+              关闭
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* 查看凭证图片的抽屉组件 */}
+      {order.proof_image && (
+        <Drawer open={isImageDrawerOpen} onOpenChange={setIsImageDrawerOpen}>
+          <DrawerContent className="px-4 pb-6">
+            <DrawerHeader>
+              <DrawerTitle>交易凭证</DrawerTitle>
+            </DrawerHeader>
+            <div className="flex flex-col items-center justify-center p-4">
+              <img 
+                src={order.proof_image} 
+                alt="交易凭证" 
+                className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-md"
+              />
+              <p className="mt-2 text-sm text-gray-500">订单: {order.order_id}</p>
+            </div>
+            <div className="flex justify-center mt-4">
+              <DrawerClose asChild>
+                <Button variant="outline">关闭</Button>
+              </DrawerClose>
+              <Button 
+                variant="outline" 
+                className="ml-2"
+                onClick={() => window.open(order.proof_image, '_blank')}
+              >
+                在新窗口打开
+              </Button>
+            </div>
+          </DrawerContent>
+        </Drawer>
+      )}
+    </>
+  );
+};
+
+export default OrderDetailDialog;

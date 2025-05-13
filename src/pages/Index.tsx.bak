@@ -1,0 +1,190 @@
+import { useNavigate, Link } from "react-router-dom";
+import Layout from "@/components/Layout";
+import { Phone, ShieldCheck, Zap, ShoppingBag, User, CreditCard, Star, Home, Wallet } from "lucide-react";
+import { rechargeOptions } from "@/services/orderService";
+import "@/styles/neumorphism.css";
+import "@/styles/profile-update.css";
+import "@/styles/neumorphic-cards.css";
+
+const Index = () => {
+  const navigate = useNavigate();
+
+  const goToRecharge = () => {
+    navigate("/recharge");
+  };
+
+  return (
+    <Layout>
+      <div className="neumorphic-container pb-20">
+        {/* 轮播图区域 */}
+        <div className="neumorphic-card overflow-hidden p-0" style={{height: 'auto'}}>
+          <img 
+            src="public/1.jpg" 
+            alt="广告图片"
+            className="w-full h-48 object-cover"
+          />
+        </div>
+        
+        {/* 功能网格 */}
+        <div className="features-grid">
+          <div className="grid-item" onClick={goToRecharge}>
+            <div className="grid-icon">
+              <Phone size={24} className="text-red-500" />
+            </div>
+            <div className="grid-label">话费充值</div>
+          </div>
+          <Link to="/wallet" className="grid-item">
+            <div className="grid-icon">
+              <CreditCard size={24} className="text-blue-500" />
+            </div>
+            <div className="grid-label">我的钱包</div>
+          </Link>
+          <Link to="/orders" className="grid-item">
+            <div className="grid-icon">
+              <ShoppingBag size={24} className="text-green-500" />
+            </div>
+            <div className="grid-label">我的订单</div>
+          </Link>
+          <Link to="/profile" className="grid-item">
+            <div className="grid-icon">
+              <User size={24} className="text-purple-500" />
+            </div>
+            <div className="grid-label">个人中心</div>
+          </Link>
+        </div>
+        
+        {/* 热门充值卡片 */}
+        <div className="neumorphic-card" style={{height: 'auto'}}>
+          <h3 className="feature-title mt-4">热门充值选项</h3>
+          <div className="px-4 py-3 flex justify-between items-center">
+            <h3 className="font-bold text-lg">快速充值指南</h3>
+            <span className="text-xs text-gray-500">新手必看</span>
+          </div>
+          <div className="grid grid-cols-3 gap-2 p-4">
+            {rechargeOptions.slice(0, 6).map((option) => (
+              <div 
+                key={option.value} 
+                className="bg-white rounded-xl p-3 text-center shadow-sm transition-transform hover:-translate-y-1"
+                onClick={goToRecharge}
+              >
+                <p className="text-xl font-bold text-red-500">{option.label}</p>
+                {option.discount && (
+                  <span className="bg-red-50 text-red-500 text-xs px-2 py-1 rounded-full mt-1 inline-block">
+                    省 {option.discount}元
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+          <button className="neumorphic-button mt-3 mb-3" onClick={goToRecharge}>
+            查看全部充值选项
+          </button>
+        </div>
+        
+        {/* 三大特点 */}
+        <div className="neumorphic-card mt-4" style={{height: 'auto'}}>
+          <h3 className="feature-title mt-4">为什么选择我们</h3>
+          <div className="p-4 grid grid-cols-3 gap-4">
+            <div className="text-center">
+              <div className="mx-auto bg-red-100 p-3 rounded-full w-14 h-14 flex items-center justify-center mb-2">
+                <Zap className="h-6 w-6 text-red-500" />
+              </div>
+              <h3 className="font-bold text-sm">即时充值</h3>
+              <p className="text-xs text-gray-500 mt-1">秒充秒到账</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="mx-auto bg-blue-100 p-3 rounded-full w-14 h-14 flex items-center justify-center mb-2">
+                <ShieldCheck className="h-6 w-6 text-blue-500" />
+              </div>
+              <h3 className="font-bold text-sm">100% 安全</h3>
+              <p className="text-xs text-gray-500 mt-1">银行级安全</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="mx-auto bg-green-100 p-3 rounded-full w-14 h-14 flex items-center justify-center mb-2">
+                <Phone className="h-6 w-6 text-green-500" />
+              </div>
+              <h3 className="font-bold text-sm">全部运营商</h3>
+              <p className="text-xs text-gray-500 mt-1">支持三大运营商</p>
+            </div>
+          </div>
+        </div>
+        
+        {/* 用户评价 */}
+        <div className="neumorphic-card" style={{height: 'auto'}}>
+          <h3 className="feature-title mt-4">用户评价</h3>
+          <div className="p-4 space-y-4">
+            <div className="bg-white rounded-lg p-3 shadow-sm">
+              <div className="flex items-center mb-2">
+                <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center mr-2">
+                  <span className="text-red-500 font-bold">Z</span>
+                </div>
+                <div>
+                  <p className="font-semibold">张伟</p>
+                  <div className="flex">
+                    {[1,2,3,4,5].map(n => (
+                      <Star key={n} className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <p className="text-sm text-gray-600">
+                "畅充宝在我急需给手机充值时帮了我大忙。服务快速可靠！"
+              </p>
+            </div>
+            
+            <div className="bg-white rounded-lg p-3 shadow-sm">
+              <div className="flex items-center mb-2">
+                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-2">
+                  <span className="text-blue-500 font-bold">L</span>
+                </div>
+                <div>
+                  <p className="font-semibold">李梅</p>
+                  <div className="flex">
+                    {[1,2,3,4,5].map(n => (
+                      <Star key={n} className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <p className="text-sm text-gray-600">
+                "我喜欢大额充值时的折扣。我已经使用这项服务几个月了。"
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* 底部导航 */}
+      <div className="neumorphic-bottom-nav">
+        <Link to="/" className="neumorphic-nav-item active">
+          <div className="neumorphic-nav-icon active">
+            <Home size={22} />
+          </div>
+          <span>首页</span>
+        </Link>
+        <Link to="/orders" className="neumorphic-nav-item">
+          <div className="neumorphic-nav-icon">
+            <ShoppingBag size={22} />
+          </div>
+          <span>订单</span>
+        </Link>
+        <Link to="/wallet" className="neumorphic-nav-item">
+          <div className="neumorphic-nav-icon">
+            <Wallet size={22} />
+          </div>
+          <span>钱包</span>
+        </Link>
+        <Link to="/profile" className="neumorphic-nav-item">
+          <div className="neumorphic-nav-icon">
+            <User size={22} />
+          </div>
+          <span>我的</span>
+        </Link>
+      </div>
+    </Layout>
+  );
+};
+
+export default Index;

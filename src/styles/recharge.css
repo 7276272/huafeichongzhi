@@ -1,0 +1,360 @@
+/* 充值页面新样式 */
+
+/* 金额按钮视觉增强 */
+.recharge-amount-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.recharge-amount-option {
+  position: relative;
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 10px;
+  padding: 15px 12px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.recharge-amount-option:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  border-color: #dee2e6;
+}
+
+.recharge-amount-option.selected {
+  border-color: #4a80ff;
+  background: linear-gradient(45deg, rgba(74, 128, 255, 0.03), rgba(74, 128, 255, 0.08));
+  box-shadow: 0 5px 15px rgba(74, 128, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.recharge-amount-option:active {
+  transform: scale(0.98);
+}
+
+.recharge-amount-option::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(74, 128, 255, 0.08), transparent);
+  transform: translateX(-100%);
+  transition: 0.6s;
+}
+
+.recharge-amount-option.selected::before {
+  transform: translateX(100%);
+}
+
+.amount-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.amount-discount {
+  font-size: 12px;
+  color: #ff6b6b;
+  background-color: rgba(255, 107, 107, 0.1);
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.amount-selected-mark {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: #4a80ff;
+  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 0 8px 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+  0% { transform: scale(0); }
+  70% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* 自定义金额输入框增强 */
+.custom-amount-container {
+  margin-top: 15px;
+  border: 2px dashed #e9ecef;
+  border-radius: 10px;
+  padding: 12px;
+  transition: all 0.25s ease;
+}
+
+.custom-amount-container.active {
+  border-color: #4a80ff;
+  background-color: rgba(74, 128, 255, 0.03);
+}
+
+
+/* 头部样式 */
+.recharge-header {
+  background: linear-gradient(to bottom, #ffa726, #ffeb3b);
+  padding: 15px 20px;
+  color: white;
+  text-align: center;
+  position: relative;
+  border-radius: 0 0 20px 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.recharge-header h1 {
+  font-size: 1.5rem;
+  margin: 0;
+  padding: 10px 0;
+}
+
+.recharge-back-button {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: white;
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+}
+
+/* 充值Banner区域 */
+.recharge-banner {
+  background: linear-gradient(135deg, #fff176, #ffcc80);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 15px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.recharge-banner-text {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.recharge-banner-image {
+  max-width: 120px;
+  height: auto;
+}
+
+/* 功能按钮区域 */
+.recharge-function-buttons {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px 0 25px 0;
+  flex-wrap: wrap;
+}
+
+.function-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 18%;
+}
+
+.function-button-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+  color: white;
+  font-size: 1.2rem;
+}
+
+.function-button-text {
+  font-size: 12px;
+  color: #333;
+  text-align: center;
+}
+
+/* 改变每个按钮的背景色 */
+.function-button:nth-child(1) .function-button-icon { background-color: #4285f4; }
+.function-button:nth-child(2) .function-button-icon { background-color: #db4437; }
+.function-button:nth-child(3) .function-button-icon { background-color: #f4b400; }
+.function-button:nth-child(4) .function-button-icon { background-color: #0f9d58; }
+.function-button:nth-child(5) .function-button-icon { background-color: #4285f4; }
+
+/* 充值选项卡 */
+.recharge-tabs {
+  border-top: 1px solid #eee;
+  position: relative;
+}
+
+.recharge-tab-header {
+  display: flex;
+  margin-top: 15px;
+}
+
+.recharge-tab {
+  flex: 1;
+  text-align: center;
+  padding: 10px 0;
+  font-size: 16px;
+  font-weight: bold;
+  color: #666;
+  cursor: pointer;
+  position: relative;
+}
+
+.recharge-tab.active {
+  color: #ff9800;
+}
+
+.recharge-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 3px;
+  background-color: #ff9800;
+  border-radius: 3px;
+}
+
+/* 充值卡片样式 */
+.recharge-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.recharge-option {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background-color: white;
+}
+
+.recharge-option.selected {
+  border: 2px solid #ff9800;
+  background-color: rgba(255, 152, 0, 0.05);
+}
+
+.recharge-option:active {
+  transform: scale(0.98);
+}
+
+.recharge-option-amount {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/* 充值按钮 */
+.recharge-submit-button {
+  background-color: #ff9800;
+  color: white;
+  border: none;
+  border-radius: 30px;
+  padding: 12px 0;
+  font-size: 18px;
+  font-weight: bold;
+  width: 100%;
+  margin-top: 20px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.recharge-submit-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.recharge-submit-button:not(:disabled):hover {
+  background-color: #f57c00;
+}
+
+/* 充值页面容器 */
+.recharge-container {
+  max-width: 550px;
+  margin: 0 auto;
+  padding: 0;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+.recharge-content {
+  padding: 0 15px 30px 15px;
+}
+
+/* 自定义输入框样式 */
+.custom-input {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px 15px;
+  font-size: 16px;
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.custom-input:focus {
+  border-color: #ff9800;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.2);
+}
+
+/* 适配手机端 */
+@media (max-width: 480px) {
+  .recharge-function-buttons {
+    padding: 10px 0 15px 0;
+  }
+  
+  .function-button-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+  
+  .function-button-text {
+    font-size: 10px;
+  }
+  
+  .recharge-options {
+    gap: 8px;
+  }
+  
+  .recharge-option {
+    height: 70px;
+  }
+  
+  .recharge-option-amount {
+    font-size: 16px;
+  }
+}

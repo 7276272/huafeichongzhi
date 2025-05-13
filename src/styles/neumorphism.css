@@ -1,0 +1,449 @@
+/* 小红书风格样式 */
+.neumorphic-container {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+  padding: 16px;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+}
+
+.neumorphic-card {
+  width: 100%;
+  max-width: 390px;
+  background-color: #eee;
+  border-radius: 20px;
+  box-shadow: 8px 8px 15px rgba(0,0,0,0.1), -8px -8px 15px rgba(255,255,255,0.8);
+  margin: 15px auto;
+  padding: 15px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.neumorphic-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 10px 10px 20px rgba(0,0,0,0.15), -10px -10px 20px rgba(255,255,255,0.9);
+}
+
+.neumorphic-avatar {
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
+  margin-right: 15px;
+  padding: 5px;
+  background-color: #eee;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 5px 5px 10px rgba(0,0,0,0.1), -5px -5px 10px rgba(255,255,255,0.8);
+}
+
+.neumorphic-stats-card {
+  text-align: center;
+  width: 33%;
+  padding: 10px;
+  background-color: #eee;
+  border-radius: 12px;
+  box-shadow: 5px 5px 10px rgba(0,0,0,0.05), -5px -5px 10px rgba(255,255,255,0.7);
+  margin: 0 5px;
+  transition: all 0.3s ease;
+}
+
+.neumorphic-menu-item {
+  background-color: #eee;
+  border-radius: 16px;
+  box-shadow: 5px 5px 10px rgba(0,0,0,0.1), -5px -5px 10px rgba(255,255,255,0.8);
+  padding: 15px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.neumorphic-menu-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 8px 8px 16px rgba(0,0,0,0.12), -8px -8px 16px rgba(255,255,255,0.9);
+}
+
+.neumorphic-icon {
+  width: 40px;
+  height: 40px;
+  background-color: #eee;
+  border-radius: 50%;
+  box-shadow: 3px 3px 6px rgba(0,0,0,0.1), -3px -3px 6px rgba(255,255,255,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16px;
+}
+
+.neumorphic-title {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 4px;
+  color: #333;
+}
+
+.neumorphic-text {
+  color: #666;
+  font-size: 14px;
+}
+
+.neumorphic-button {
+  background-color: #26c6b8;
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  box-shadow: 3px 3px 6px rgba(0,0,0,0.1), -3px -3px 6px rgba(255,255,255,0.7);
+}
+
+.neumorphic-button:hover {
+  background-color: #20b5a8;
+  transform: translateY(-2px);
+}
+
+.neumorphic-button.danger {
+  background-color: #ff4757;
+}
+
+.neumorphic-button.danger:hover {
+  background-color: #e0404e;
+}
+
+/* 功能卡片区域 */
+.neumorphic-function-area {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin: 20px auto;
+  max-width: 390px;
+}
+
+.neumorphic-function-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.function-icon {
+  width: 50px;
+  height: 50px;
+  background-color: #eee;
+  border-radius: 50%;
+  box-shadow: 3px 3px 6px rgba(0,0,0,0.1), -3px -3px 6px rgba(255,255,255,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+  transition: all 0.3s ease;
+}
+
+.function-icon:hover {
+  transform: translateY(-2px);
+  box-shadow: 5px 5px 10px rgba(0,0,0,0.12), -5px -5px 10px rgba(255,255,255,0.9);
+}
+
+.function-label {
+  font-size: 12px;
+  color: #333;
+  margin-top: 5px;
+}
+
+/* 底部导航栏 - 椭圆形悬浮样式 */
+.neumorphic-bottom-nav {
+  background-color: #eee;
+  border-radius: 30px 30px 0 0;
+  box-shadow: 0 -8px 16px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8);
+  display: flex;
+  justify-content: space-around;
+  padding: 15px 0;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  border-top: 1px solid rgba(255,255,255,0.9);
+}
+
+.neumorphic-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #666;
+  font-size: 12px;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 30px;
+  transition: all 0.3s ease;
+}
+
+.neumorphic-nav-item:hover {
+  transform: translateY(-3px);
+}
+
+.neumorphic-nav-item.active {
+  color: #ff4757;
+  background-color: rgba(255, 71, 87, 0.1);
+  box-shadow: inset 2px 2px 5px rgba(0,0,0,0.05), inset -2px -2px 5px rgba(255,255,255,0.5);
+}
+
+.neumorphic-nav-icon {
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 5px;
+  background-color: #eee;
+  border-radius: 50%;
+  box-shadow: 5px 5px 8px #d1d1d1, -5px -5px 8px #ffffff;
+  transition: all 0.3s ease;
+}
+
+.neumorphic-nav-icon.active {
+  color: #ff4757;
+  background-color: rgba(255, 71, 87, 0.1);
+  background-color: rgba(255, 71, 87, 0.05);
+  box-shadow: inset 2px 2px 5px rgba(0,0,0,0.05), inset -2px -2px 5px rgba(255,255,255,0.5);
+}
+
+/* 用户信息卡片样式 */
+.user-info-card {
+  width: 100%;
+  max-width: 390px;
+  height: auto;
+  background-color: #eee;
+  border-radius: 20px;
+  box-shadow: 8px 8px 15px rgba(0,0,0,0.1), -8px -8px 15px rgba(255,255,255,0.8);
+  margin: 20px auto;
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 15px;
+}
+
+.user-avatar {
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
+  margin-right: 15px;
+  padding: 5px;
+  background-color: #eee;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 5px 5px 10px rgba(0,0,0,0.1), -5px -5px 10px rgba(255,255,255,0.8);
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex-grow: 1;
+  color: #333;
+  padding: 10px;
+  text-align: left;
+}
+
+/* 余额卡片样式 */
+.balance-card-container {
+  max-width: 390px;
+  background-color: #eee;
+  border-radius: 20px;
+  padding: 15px;
+  margin: 15px auto;
+  display: flex;
+  justify-content: space-between;
+  box-shadow: 8px 8px 15px rgba(0,0,0,0.1), -8px -8px 15px rgba(255,255,255,0.8);
+}
+
+.balance-card {
+  text-align: center;
+  width: 33%;
+  padding: 10px;
+  border-radius: 12px;
+}
+
+.balance-amount {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.balance-label {
+  font-size: 12px;
+  color: #666;
+}
+
+/* 导航网格 */
+.navigation-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 15px;
+  padding: 15px;
+  background-color: #eee;
+  border-radius: 20px;
+  margin: 15px auto;
+  max-width: 390px;
+  box-shadow: 8px 8px 15px rgba(0,0,0,0.1), -8px -8px 15px rgba(255,255,255,0.8);
+}
+
+.red-btn, .blue-btn {
+  width: 100%;
+  height: 140px;
+  background-color: #eee;
+  color: #333;
+  border: none;
+  border-radius: 12px;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  box-shadow: 5px 5px 10px rgba(0,0,0,0.1), -5px -5px 10px rgba(255,255,255,0.8);
+  transition: all 0.3s ease;
+}
+
+.red-btn:hover, .blue-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 8px 8px 15px rgba(0,0,0,0.12), -8px -8px 15px rgba(255,255,255,0.9);
+}
+
+.button-icon {
+  width: 50px;
+  height: 50px;
+  margin-bottom: 15px;
+}
+
+/* 新拟物卡片样式 */
+.neumorphic-card-new {
+  width: 100%;
+  background-color: #eee;
+  text-align: center;
+  border: 10px solid #eee;
+  border-radius: 25px;
+  box-shadow: inset 5px 5px 10px #bbb, inset -5px -5px 10px #fff;
+  transition: 0.5s;
+  margin-bottom: 1rem;
+  position: relative;
+  padding: 1rem;
+}
+
+.neumorphic-card-new:hover {
+  transform: translateY(-5px);
+}
+
+.neumorphic-card-icon {
+  width: 80px;
+  height: 80px;
+  color: #26c6b8;
+  font-size: 30px;
+  background-color: #eee;
+  margin: 10px auto;
+  padding: 5px;
+  border-radius: 50%;
+  box-shadow: 8px 8px 10px #ddd, -8px -8px 10px #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.neumorphic-card-content {
+  color: #666;
+  background-color: #eee;
+  padding: 15px;
+  margin: 10px 5px;
+  border-radius: 12px;
+  box-shadow: 8px 8px 10px #ddd, -8px -8px 10px #fff;
+  text-align: left;
+  transition: 0.3s;
+}
+
+.neumorphic-card-content:hover {
+  transform: translateY(-3px);
+  box-shadow: 10px 10px 15px #ccc, -10px -10px 15px #fff;
+}
+
+.neumorphic-title-card {
+  background-color: #eee;
+  text-align: center;
+  border: 10px solid #eee;
+  border-radius: 25px;
+  box-shadow: inset 5px 5px 10px #bbb, inset -5px -5px 10px #fff;
+  transition: 0.5s;
+  margin-bottom: 1rem;
+  padding: 1rem;
+}
+
+.xiaohongshu-list-item {
+  background-color: white;
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  border: 1px solid rgba(230,230,230,0.8);
+  margin-bottom: 0.75rem;
+  position: relative;
+}
+
+.xiaohongshu-list-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 0.75rem;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,1);
+  pointer-events: none;
+}
+
+/* 页头新拟物风格 */
+.neumorphic-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background-color: #eee;
+  margin: 0 8px 16px 8px;
+  border-radius: 18px;
+  box-shadow: 5px 5px 10px rgba(0,0,0,0.1), -5px -5px 10px rgba(255,255,255,0.8);
+}
+
+.neumorphic-icon-button {
+  width: 40px;
+  height: 40px;
+  background-color: #eee;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  cursor: pointer;
+  box-shadow: 3px 3px 6px rgba(0,0,0,0.1), -3px -3px 6px rgba(255,255,255,0.8);
+  transition: all 0.3s ease;
+}
+
+.neumorphic-icon-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 5px 5px 8px rgba(0,0,0,0.12), -5px -5px 8px rgba(255,255,255,0.9);
+}
+
+.neumorphic-icon-button:active {
+  box-shadow: inset 2px 2px 5px rgba(0,0,0,0.1), inset -2px -2px 5px rgba(255,255,255,0.8);
+}
